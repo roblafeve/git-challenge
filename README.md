@@ -2,3 +2,4 @@
 A simple repo for learning git
 
 Okay then.
+Hi, Aaron
