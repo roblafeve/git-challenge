@@ -1,24 +1,28 @@
 {
     init: function(elevators, floors) {
 
-      // Send elevator to floor based on waiter's input
-      floors.map(function(floor){
-          floor.on("up_button_pressed", function() {
-              console.log ("Up " + floor.level);
+      // Elevator Input - Send elevator to floor based on rider's input
+      elevators.map(function(elevator) {
+          elevator.on('floor_button_pressed', function(floor) {
+              elevator.goToFloor(floor)
           })
-
-          floor.on("down_button_pressed", function() {
-              console.log ("Down " + floor.level);
-          })
+          elevator.on("idle", function() {elevator.goToFloor(0); });
+          elevator.on("passing_floor", function(floorNum, direction) {
+              if (elevator.destinationDirection() == "up" && floors[floorNum].buttonStates.up == "activated" ) {
+                elevator.goingUpIndicator(true);
+                elevator.goToFloor(floorNum, true)
+                floors[floorNum].buttonStates.up = ""
+              }
+              if (elevator.destinationDirection() == "down" && floors[floorNum].buttonStates.down == "activated" ) {
+                elevator.goingDownIndicator(true);
+                elevator.goToFloor(floorNum, true)
+                floors[floorNum].buttonStates.down = ""
+              }
+              // console.log(floors[floorNum].buttonStates);
+          });
       })
+      // End Elevator Input
 
-        // Send elevator to floor based on rider's input
-        elevators.map(function(elevator) {
-                elevator.on('floor_button_pressed', function(floor) {
-                    elevator.goToFloor(floor)
-                })
-                elevator.on("idle", function() { elevator.goToFloor(0); });
-        })
     },
     update: function(dt, elevators, floors) {
         // We normally don't need to do anything here
