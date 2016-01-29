@@ -3,10 +3,16 @@
 
       // Elevator Input - Send elevator to floor based on rider's input
       elevators.map(function(elevator) {
+        // If an elevator button is pressed head to that floor.
           elevator.on('floor_button_pressed', function(floor) {
-              elevator.goToFloor(floor)
+              elevator.destinationQueue += floor
+              elevator.destinationQueue.sort;
+              elevator.checkDestinationQueue();
           })
+
           elevator.on("idle", function() {elevator.goToFloor(0); });
+
+          // As you pass the floor stop if a button is pressed.
           elevator.on("passing_floor", function(floorNum, direction) {
               if (elevator.destinationDirection() == "up" && floors[floorNum].buttonStates.up == "activated" ) {
                 elevator.goingUpIndicator(true);
