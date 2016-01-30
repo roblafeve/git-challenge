@@ -4,13 +4,13 @@
 
 
       //**********************************************************************
-      //**********************************************************************
       // MAP Elevators
+      //**********************************************************************
       elevators.map(function(elevator) {
 
 
-        //**********************************************************************
         // Idle Elevator - Assign a floor. Current Logic: Find closest floor
+        //**********************************************************************
         elevator.on("idle", function() {
             var Bestfloor = floors.length * 3
             floors.map(function(floor){
@@ -30,27 +30,19 @@
               elevator.goToFloor(0);
             };
         });
-        // Idle Elevator
         //**********************************************************************
 
 
-        //**********************************************************************
         // Floor pressed in elevator - Assign floor. Queue to end of elevator
+        //**********************************************************************
           elevator.on('floor_button_pressed', function(floor) {
             elevator.goToFloor(floor);
         });
         //**********************************************************************
 
 
-        //**********************************************************************
-        // Indicator lights
-
-        // Indicator lights
-        //**********************************************************************
-
-
-        //**********************************************************************
         // Floor Button Pressed - Queue floor if in right directio
+        //**********************************************************************
         elevator.on("passing_floor", function(floorNum, direction) {
 
             if (elevator.destinationDirection() == "up") {
@@ -77,19 +69,48 @@
                 floors[floorNum].buttonStates.down = "";
             }
         });
-        // Floor Button Pressed
         //**********************************************************************
 
 
     });
-    // End Elevator Input
     //**********************************************************************
     //**********************************************************************
 
 
 
     },
+        //**********************************************************************
+        // Update Function
+        //**********************************************************************
         update: function(dt, elevators, floors) {
-            // We normally don't need to do anything here
+
+            // Update Indicator lights
+            //**********************************************************************
+            elevators.map(function(elevator) {
+              elevator.on("passing_floor", function(floorNum, direction) {
+                var nextstop = elevator.destinationQueue[0]
+                if (nextstop > floorNum) {
+                    elevator.goingUpIndicator(true);
+                    elevator.goingDownIndicator(false);
+                }
+                else if (nextstop < floorNum) {
+                    elevator.goingUpIndicator(false);
+                    elevator.goingDownIndicator(true);
+                }
+                else if (floorNum = 0 ) {
+                    elevator.goingUpIndicator(true);
+                    elevator.goingDownIndicator(false);
+                }
+              });
+
+              if(elevator.currentFloor() == 0) {
+                elevator.goingUpIndicator(true);
+                elevator.goingDownIndicator(false);
+              }
+
+            });
+            //**********************************************************************
         }
+        //**********************************************************************
+        //**********************************************************************
 }
