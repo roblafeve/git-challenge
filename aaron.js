@@ -71,6 +71,40 @@
         });
         //**********************************************************************
 
+        // Update Indicator lights
+        //**********************************************************************
+          elevator.on("passing_floor", function(floorNum, direction) {
+            var nextstop = elevator.destinationQueue[0]
+            if (nextstop > floorNum) {
+              elevator.goingUpIndicator(true);
+              elevator.goingDownIndicator(false);
+            } else {
+              elevator.goingUpIndicator(false);
+              elevator.goingDownIndicator(true);
+            }
+          });
+
+          elevator.on("stopped_at_floor", function (floorNum) {
+            var nextstop = elevator.destinationQueue[0]
+            if (nextstop > floorNum) {
+                elevator.goingUpIndicator(true);
+                elevator.goingDownIndicator(false);
+            }
+            else if (nextstop < floorNum) {
+                elevator.goingUpIndicator(false);
+                elevator.goingDownIndicator(true);
+            }
+            else {
+                elevator.goingUpIndicator(true);
+                elevator.goingDownIndicator(true);
+            }
+          });
+
+          elevator.on("idle", function() {
+            elevator.goingUpIndicator(true);
+              if(elevator.currentFloor() !== 0) {elevator.goingDownIndicator(true);}
+          });
+        //**********************************************************************
 
     });
     //**********************************************************************
@@ -84,32 +118,6 @@
         //**********************************************************************
         update: function(dt, elevators, floors) {
 
-            // Update Indicator lights
-            //**********************************************************************
-            elevators.map(function(elevator) {
-              elevator.on("passing_floor", function(floorNum, direction) {
-                var nextstop = elevator.destinationQueue[0]
-                if (nextstop > floorNum) {
-                    elevator.goingUpIndicator(true);
-                    elevator.goingDownIndicator(false);
-                }
-                else if (nextstop < floorNum) {
-                    elevator.goingUpIndicator(false);
-                    elevator.goingDownIndicator(true);
-                }
-                else if (floorNum = 0 ) {
-                    elevator.goingUpIndicator(true);
-                    elevator.goingDownIndicator(false);
-                }
-              });
-
-              if(elevator.currentFloor() == 0) {
-                elevator.goingUpIndicator(true);
-                elevator.goingDownIndicator(false);
-              }
-
-            });
-            //**********************************************************************
         }
         //**********************************************************************
         //**********************************************************************
