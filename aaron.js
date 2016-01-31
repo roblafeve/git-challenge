@@ -19,24 +19,28 @@
 
         // Decide how to react to state of elevators and floors with controller
         function controller() {
+            // Declare variables
+            var elevatorNum = 0;
+            var elevatorRating = 0;
+            var elevatorDirection = "";
+            var floorDirection = "";
+
             // Evaluate state of floors and elevators
             // Evaluate every elevator against each floor
             floors.map(function(floor) {
-
-                // Declare variables
-                var elevatorNum = 0;
-                var elevatorRating = 0;
-                var elevatorDirection = "";
-                var floorDirection = "";
-
                 elevators.map(function(elevator) {
                     elevatorNum = elevators.indexOf(elevator);
                     elevatorRating = 0;
+
+                    // Compute elevator direction
+                    if ((elevator.destinationQueue[0] - elevator.currentFloor() > 0) || elevator.destinationDirection() == "up") {elevatorDirection = "up"}
+                    else if ((elevator.destinationQueue[0] - elevator.currentFloor() < 0) || elevator.destinationDirection() == "down") {elevatorDirection = "down"}
+                    else {elevatorDirection = "idle"}
+
                     // Adjust rating based on distance between elevator and current floor
                     elevatorRating += floors.length / (Math.abs(floor.floorNum() - elevator.currentFloor()));
                     // Adjust rating based on available space in elevator
                     elevatorRating += elevator.maxPassengerCount() * elevator.loadFactor();
-                    // DEBUG... should this logic be moved to the start along with logic to confirm floor actually needs an elevator? Answer probably yes. Since if a floor has been hit in an elevator it is going to that floor.
                     // Elevator rating + 100 if the floor has already been pressed
                     elevator.getPressedFloors().map(function(buttonPress) {
                         if (floor.floorNum() == buttonPress) {
@@ -44,29 +48,55 @@
                         }
                     });
 
-                    // Compute elevator direction
-                    if ((elevator.destinationQueue[0] - elevator.currentFloor() > 0) || elevator.destinationDirection() == "up") {elevatorDirection = "up"}
-                    else if ((elevator.destinationQueue[0] - elevator.currentFloor() < 0) || elevator.destinationDirection() == "down") {elevatorDirection = "down"}
-                    else {elevatorDirection = "idle"}
-
                     // Adjust rating if headed in the right direction positively... otherwise negatively adjust it.
                     if ((floor.floorNum() - elevator.currentFloor() >= 0) && elevatorDirection == "up") {elevatorRating += floors.length - (Math.abs(floor.floorNum() - elevator.currentFloor()))}
                     else if ((floor.floorNum() - elevator.currentFloor() <= 0) && elevatorDirection == "down") {elevatorRating += floors.length - (Math.abs(floor.floorNum() - elevator.currentFloor()))}
                     else {elevatorRating -= floors.length}
 
-                    // Possibly... change this based off max space and buttons pressed
                     // Lower elevator rating if there is no room in the elevator
                     if (elevator.loadFactor() == 0) {
-                        elevatorRating -= floors.length;
+                        elevatorRating -= Math.abs(floors.length - elevator.getPressedFloors());
                     }
 
+                    // Assign computed values to elevator
+                    elevator.rating = elevatorRating;
+                    elevator.direction = elevatorDirection;
                 });
 
-                floor.elevatorNum = 0;
+                var elevatorChoice = {
+                    num: 0,
+                    rating: 0
+                }
+                // Evaluate all elevators and choose the best options
+                elevators.map(function(elevator) {
+                    if (elevator.rating > elevatorChoice.rating) {
+                        elevatorChoice.num = elevators.indexOf(elevator);
+                        elevatorChoice.rating = elevator.rating;
+                    }
+                });
+
+                // Queue Floor
+                if (floor.buttonStates.up == "activated" || floor.buttonStates.down == "activated") {
+                    elevators[elevatorChoice.num].goToFloor(floor.floorNum());
+                }
+                elevators[elevatorChoice.num].getPressedFloors().map(function(buttonPress) {
+                    if (floor.floorNum() == buttonPress) {
+                        elevators[elevatorChoice.num].goToFloor(floor.floorNum());
+                    }
+                });
+
             });
 
             elevators.map(function(elevator) {
-
+                if (elevator.direction == "up") {
+                    elevator.destinationQueue.sort();
+                    elevator.checkDestinationQueue();
+                }
+                if (elevator.direction == "down") {
+                    elevator.destinationQueue.sort();
+                    elevator.destinationQueue.reverse();
+                    elevator.checkDestinationQueue();
+                }
             });
 
             // Change state of elevators
