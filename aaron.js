@@ -52,8 +52,9 @@
                     // Adjust rating if headed in the right direction positively... otherwise negatively adjust it.
                     if ((floor.floorNum() - elevator.currentFloor() >= 0) && elevatorDirection == "up") {elevatorRating += floors.length - (Math.abs(floor.floorNum() - elevator.currentFloor()))}
                     else if ((floor.floorNum() - elevator.currentFloor() <= 0) && elevatorDirection == "down") {elevatorRating += floors.length - (Math.abs(floor.floorNum() - elevator.currentFloor()))}
-                    else {elevatorRating -= floors.length - (Math.abs(floor.floorNum() - elevator.currentFloor()))}
+                    else {elevatorRating -= floors.length}
 
+                    // Possibly... change this based off max space and buttons pressed
                     // Lower elevator rating if there is no room in the elevator
                     if (elevator.loadFactor() == 0) {
                         elevatorRating -= floors.length;
