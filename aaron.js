@@ -25,17 +25,41 @@
             var elevatorDirection = "";
             var floorDirection = "";
 
+            // Reset destination queue, add pressed floors, set direction light
+            elevators.map(function(elevator) {
+                elevator.destinationQueue = [];
+                elevator.destinationQueue = elevator.getPressedFloors();
+                elevator.destinationQueue.sort();
+                elevator.checkDestinationQueue();
+
+                // Compute elevator direction
+                if ((elevator.destinationQueue[0] - elevator.currentFloor() > 0) || elevator.destinationDirection() == "up") {
+                    elevatorDirection = "up"
+                    elevator.goingUpIndicator(true);
+                    elevator.goingDownIndicator(false);
+                }
+                else if ((elevator.destinationQueue[0] - elevator.currentFloor() < 0) || elevator.destinationDirection() == "down") {
+                    elevatorDirection = "down"
+                    elevator.destinationQueue.reverse()
+                    if (elevator.currentFloor() > 0) {
+                        elevator.goingUpIndicator(false);
+                        elevator.goingDownIndicator(true);
+                    }
+                    else {
+                        elevator.goingUpIndicator(true);
+                        elevator.goingDownIndicator(false);
+                    }
+
+                }
+                else {elevatorDirection = "idle"}
+            });
+
             // Evaluate state of floors and elevators
             // Evaluate every elevator against each floor
             floors.map(function(floor) {
                 elevators.map(function(elevator) {
                     elevatorNum = elevators.indexOf(elevator);
                     elevatorRating = 0;
-
-                    // Compute elevator direction
-                    if ((elevator.destinationQueue[0] - elevator.currentFloor() > 0) || elevator.destinationDirection() == "up") {elevatorDirection = "up"}
-                    else if ((elevator.destinationQueue[0] - elevator.currentFloor() < 0) || elevator.destinationDirection() == "down") {elevatorDirection = "down"}
-                    else {elevatorDirection = "idle"}
 
                     // Adjust rating based on distance between elevator and current floor
                     elevatorRating += floors.length / (Math.abs(floor.floorNum() - elevator.currentFloor()));
@@ -79,11 +103,14 @@
                 if (floor.buttonStates.up == "activated" || floor.buttonStates.down == "activated") {
                     elevators[elevatorChoice.num].goToFloor(floor.floorNum());
                 }
+
+                /* Delete this
                 elevators[elevatorChoice.num].getPressedFloors().map(function(buttonPress) {
                     if (floor.floorNum() == buttonPress) {
                         elevators[elevatorChoice.num].goToFloor(floor.floorNum());
                     }
                 });
+                */
 
             });
 
