@@ -7,14 +7,14 @@
         elevators.map(function(elevator) {
             elevator.on("idle", function() {controller();});
             elevator.on("floor_button_pressed", function(floorNum) {controller();});
-            elevator.on("passing_floor", function(floorNum, direction) {controller();});
+            // elevator.on("passing_floor", function(floorNum, direction) {controller();});
             elevator.on("stopped_at_floor", function(floorNum) {controller();});
         });
 
         // On floor events call controller
         floors.map(function(floor) {
-            floor.on("up_button_pressed", function() {controller();});
-            floor.on("down_button_pressed", function() {controller();});
+            // floor.on("up_button_pressed", function() {controller();});
+            // floor.on("down_button_pressed", function() {controller();});
         });
 
         // Decide how to react to state of elevators and floors with controller
@@ -51,7 +51,11 @@
                     }
 
                 }
-                else {elevatorDirection = "idle"}
+                else {
+                    elevatorDirection = "idle"
+                    elevator.goingUpIndicator(true);
+                    elevator.goingDownIndicator(true);
+                }
             });
 
             // Evaluate state of floors and elevators
@@ -100,7 +104,10 @@
                 });
 
                 // Queue Floor
-                if (floor.buttonStates.up == "activated" || floor.buttonStates.down == "activated") {
+                if (floor.buttonStates.up == "activated" && elevatorDirection == "up") {
+                    elevators[elevatorChoice.num].goToFloor(floor.floorNum());
+                }
+                else if (floor.buttonStates.down == "activated" && elevatorDirection == "down") {
                     elevators[elevatorChoice.num].goToFloor(floor.floorNum());
                 }
 
