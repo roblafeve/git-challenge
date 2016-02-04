@@ -1,62 +1,105 @@
 {
     init: function(elevators, floors) {
         // Print objects we work with into console
-        console.log(elevators, floors);
+        console.log(elevators, floors)
 
-        // On elevator events call controller
-        elevators.map(function(elevator) {
-            elevator.on("idle", function() {controller();});
-            elevator.on("floor_button_pressed", function(floorNum) {controller();});
-            // elevator.on("passing_floor", function(floorNum, direction) {controller();});
-            elevator.on("stopped_at_floor", function(floorNum) {controller();});
-        });
+        // Variables Declared
+        var FloorQueueUp = [];
+        var FloorQueueDown = [];
 
-        // On floor events call controller
-        floors.map(function(floor) {
-            // floor.on("up_button_pressed", function() {controller();});
-            // floor.on("down_button_pressed", function() {controller();});
-        });
+        // Functions
+        // Operations
+        function sortNumAsc (a,b) {return a > b ? 1 : a < b ? -1 : 0;}
+        function sortNumDsc (a,b) {return a < b ? 1 : a > b ? -1 : 0;}
+        function isOdd(num) { return num % 2;}
+        function compressArray(original) {
+        	var compressed = [];
+        	// make a copy of the input array
+        	var copy = original.slice(0);
 
-        // Decide how to react to state of elevators and floors with controller
-        function controller() {
+        	// first loop goes over every element
+        	for (var i = 0; i < original.length; i++) {
+
+        		var myCount = 0;
+        		// loop over every element in the copy and see if it's the same
+        		for (var w = 0; w < copy.length; w++) {
+        			if (original[i] == copy[w]) {
+        				// increase amount of times duplicate is found
+        				myCount++;
+        				// sets item to undefined
+        				delete copy[w];
+        			}
+        		}
+
+        		if (myCount > 0) {
+        			var a = new Object();
+        			a.value = original[i];
+        			a.count = myCount;
+        			compressed.push(a);
+        		}
+        	}
+
+        	return compressed;
+        };
+
+        function FloorVolume (FloorQueueUp, FloorQueueDown) {
+            var FloorVolumeUp = compressArray(FloorQueueUp);
+            var FloorVolumeDown = compressArray(FloorQueueDown);
+            var FloorVolumeCompiled = [
+                VolumeUp = FloorVolumeUp,
+                VolumeDown = FloorVolumeDown
+            ]
+            return FloorVolumeCompiled;
+        }
+
+        function Sortfloors(elevator) {
+            var reverse = false
+            elevator.destinationQueue.sort(sortNumAsc)
+            elevator.checkDestinationQueue();
+
+            if (elevator.destinationDirection == "down") {reverse = true}
+            if (elevator.destinationQueue[0] - elevator.currentFloor() < 0) {reverse = true}
+
+            if (reverse == true) {
+                elevator.destinationQueue.sort(sortNumDsc)
+                elevator.checkDestinationQueue();
+            }
+        }
+
+        function SetLights (elevator) {
+            if (elevator.destinationQueue[0] > elevator.currentFloor()) {
+                elevator.goingUpIndicator(true);
+                elevator.goingDownIndicator(false);
+            }
+            else if (elevator.destinationQueue[0] < elevator.currentFloor()) {
+                elevator.goingUpIndicator(false);
+                elevator.goingDownIndicator(true);
+            }
+            else {
+                elevator.goingUpIndicator(true);
+                elevator.goingDownIndicator(true);
+            }
+        }
+
+        function FloorController (elevators, floors) {
+            // Evaluate all elevators and choose the best options
+            elevators.map(function(elevator) {
+
+                if (elevator.rating > elevatorChoice.rating) {
+                    elevatorChoice.num = elevators.indexOf(elevator);
+                    elevatorChoice.rating = elevator.rating;
+                }
+            });
+
+
+        }
+
+        function controller(elevators, floors) {
             // Declare variables
             var elevatorNum = 0;
             var elevatorRating = 0;
             var elevatorDirection = "";
             var floorDirection = "";
-
-            // Reset destination queue, add pressed floors, set direction light
-            elevators.map(function(elevator) {
-                elevator.destinationQueue = [];
-                elevator.destinationQueue = elevator.getPressedFloors();
-                elevator.destinationQueue.sort();
-                elevator.checkDestinationQueue();
-
-                // Compute elevator direction
-                if ((elevator.destinationQueue[0] - elevator.currentFloor() > 0) || elevator.destinationDirection() == "up") {
-                    elevatorDirection = "up"
-                    elevator.goingUpIndicator(true);
-                    elevator.goingDownIndicator(false);
-                }
-                else if ((elevator.destinationQueue[0] - elevator.currentFloor() < 0) || elevator.destinationDirection() == "down") {
-                    elevatorDirection = "down"
-                    elevator.destinationQueue.reverse()
-                    if (elevator.currentFloor() > 0) {
-                        elevator.goingUpIndicator(false);
-                        elevator.goingDownIndicator(true);
-                    }
-                    else {
-                        elevator.goingUpIndicator(true);
-                        elevator.goingDownIndicator(false);
-                    }
-
-                }
-                else {
-                    elevatorDirection = "idle"
-                    elevator.goingUpIndicator(true);
-                    elevator.goingDownIndicator(true);
-                }
-            });
 
             // Evaluate state of floors and elevators
             // Evaluate every elevator against each floor
@@ -64,6 +107,11 @@
                 elevators.map(function(elevator) {
                     elevatorNum = elevators.indexOf(elevator);
                     elevatorRating = 0;
+
+                    // Compute elevator direction
+                    if ((elevator.destinationQueue[0] - elevator.currentFloor() > 0) || elevator.destinationDirection() == "up") {elevatorDirection = "up"}
+                    else if ((elevator.destinationQueue[0] - elevator.currentFloor() < 0) || elevator.destinationDirection() == "down") {elevatorDirection = "down"}
+                    else {elevatorDirection = "idle"}
 
                     // Adjust rating based on distance between elevator and current floor
                     elevatorRating += floors.length / (Math.abs(floor.floorNum() - elevator.currentFloor()));
@@ -77,8 +125,9 @@
                     });
 
                     // Adjust rating if headed in the right direction positively... otherwise negatively adjust it.
-                    if ((floor.floorNum() - elevator.currentFloor() >= 0) && elevatorDirection == "up") {elevatorRating += floors.length - (Math.abs(floor.floorNum() - elevator.currentFloor()))}
-                    else if ((floor.floorNum() - elevator.currentFloor() <= 0) && elevatorDirection == "down") {elevatorRating += floors.length - (Math.abs(floor.floorNum() - elevator.currentFloor()))}
+                    if ((floor.floorNum() - elevator.currentFloor() >= 0) && elevatorDirection == "up") {elevatorRating += 50}
+                    else if ((floor.floorNum() - elevator.currentFloor() <= 0) && elevatorDirection == "down") {elevatorRating += 50}
+                    else if (elevatorDirection == "idle") {elevatorRating += 100}
                     else {elevatorRating -= floors.length}
 
                     // Lower elevator rating if there is no room in the elevator
@@ -104,20 +153,14 @@
                 });
 
                 // Queue Floor
-                if (floor.buttonStates.up == "activated" && elevatorDirection == "up") {
+                if (floor.buttonStates.up == "activated" || floor.buttonStates.down == "activated") {
                     elevators[elevatorChoice.num].goToFloor(floor.floorNum());
                 }
-                else if (floor.buttonStates.down == "activated" && elevatorDirection == "down") {
-                    elevators[elevatorChoice.num].goToFloor(floor.floorNum());
-                }
-
-                /* Delete this
                 elevators[elevatorChoice.num].getPressedFloors().map(function(buttonPress) {
                     if (floor.floorNum() == buttonPress) {
                         elevators[elevatorChoice.num].goToFloor(floor.floorNum());
                     }
                 });
-                */
 
             });
 
@@ -137,10 +180,42 @@
 
 
         };
-    },
 
-    update: function(dt, elevators, floors) {
-        // We normally don't need to do anything here
-    }
+        // On elevator events
+        ////////////////////////////////////////////////////////////////////////
+        elevators.map(function(elevator) {
 
+
+            elevator.on("idle", function() {
+            })
+
+            elevator.on("floor_button_pressed", function(floorNum) {
+                elevator.goToFloor(floorNum)
+                Sortfloors(elevator)
+            })
+
+            elevator.on("passing_floor", function(floorNum, direction) {
+                Sortfloors(elevator)
+                SetLights(elevator)
+            })
+
+            elevator.on("stopped_at_floor", function(floorNum) {
+                SetLights (elevator)
+            })
+        });
+
+        // On floor events
+        floors.map(function(floor) {
+            floor.on("up_button_pressed", function() {
+            })
+            floor.on("down_button_pressed", function() {
+            })
+        });
+        ////////////////////////////////////////////////////////////////////////
+
+    }, /* End of init */
+
+        update: function(dt, elevators, floors) {
+            // We normally don't need to do anything here
+        } /* End of update */
 }
