@@ -1,5 +1,7 @@
 {
     init: function(elevators, floors) {
+        // Stage Version
+    
         // Print objects we work with into console
         console.log(elevators, floors)
 
