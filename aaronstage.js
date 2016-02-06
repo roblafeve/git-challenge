@@ -1,7 +1,5 @@
 {
     init: function(elevators, floors) {
-        // Stage Version
-    
         // Print objects we work with into console
         console.log(elevators, floors)
 
@@ -97,6 +95,8 @@
         }
 
         function controller(elevators, floors) {
+
+            return
             // Declare variables
             var elevatorNum = 0;
             var elevatorRating = 0;
@@ -118,7 +118,7 @@
                     // Adjust rating based on distance between elevator and current floor
                     elevatorRating += floors.length / (Math.abs(floor.floorNum() - elevator.currentFloor()));
                     // Adjust rating based on available space in elevator
-                    elevatorRating += elevator.maxPassengerCount() * elevator.loadFactor();
+                    //elevatorRating += elevator.maxPassengerCount() * elevator.loadFactor();
                     // Elevator rating + 100 if the floor has already been pressed
                     elevator.getPressedFloors().map(function(buttonPress) {
                         if (floor.floorNum() == buttonPress) {
@@ -200,6 +200,14 @@
             elevator.on("passing_floor", function(floorNum, direction) {
                 Sortfloors(elevator)
                 SetLights(elevator)
+                if (elevator.goingUpIndicator() && floors[floorNum].buttonStates.up == "activated" && elevator.loadFactor() < 0.3 ) {
+                    elevator.goToFloor(floorNum, true);
+                    floors[floorNum].buttonStates.up = "";
+                }
+                if (elevator.goingDownIndicator() && floors[floorNum].buttonStates.down == "activated" && elevator.loadFactor() < 0.3) {
+                    elevator.goToFloor(floorNum, true);
+                    floors[floorNum].buttonStates.down = "";
+                }
             })
 
             elevator.on("stopped_at_floor", function(floorNum) {
