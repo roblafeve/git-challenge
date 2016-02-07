@@ -35,6 +35,8 @@
                 elevator.goingUpIndicator(false);
                 elevator.goingDownIndicator(true);
             }
+            else if (elevator.destinationQueue.length > 0) {
+            }
             else {
                 elevator.goingUpIndicator(true);
                 elevator.goingDownIndicator(true);
@@ -47,18 +49,25 @@
             elevator.checkDestinationQueue();
         }
 
+        function AddFloors(elevator, elevators, floors) {
+
+
+            // Add Passing Floors
+            if (elevator.goingUpIndicator() && floors[elevator.currentFloor()].buttonStates.up == "activated" && elevator.loadFactor() < 0.4) {
+                elevator.goToFloor(elevator.currentFloor(), true);
+            }
+
+            if (elevator.goingDownIndicator() && floors[elevator.currentFloor()].buttonStates.down == "activated" && elevator.loadFactor() < 0.4) {
+                elevator.goToFloor(elevator.currentFloor(), true);
+            }
+
+
+        } /* End of AddFloors */
+
         function controller(elevators, floors) {
             elevators.map(function(elevator) {
                 AddPressedFloors (elevator)
-
-                if (elevator.goingUpIndicator() && floors[elevator.currentFloor()].buttonStates.up == "activated") {
-                    elevator.goToFloor(elevator.currentFloor(), true);
-                }
-
-                if (elevator.goingDownIndicator() && floors[elevator.currentFloor()].buttonStates.down == "activated") {
-                    elevator.goToFloor(elevator.currentFloor(), true);
-                }
-
+                AddFloors (elevator, elevators, floors)
 
                 /*
                 if (elevator.goingUpIndicator() && floors[floorNum].buttonStates.up == "activated" && elevator.loadFactor() < 0.3 ) {
